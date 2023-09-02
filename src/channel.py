@@ -26,10 +26,8 @@ class Channel:
         # Количество видео на канале
         self.__videoCount = int(channel.get('items')[0].get('statistics').get('videoCount'))
 
-
     def __str__(self):
         return f"{self.__name}({self.__customURL})"
-
 
     def __add__(self, other):
         return self.__subscriberCount + other.__subscriberCount
@@ -60,11 +58,6 @@ class Channel:
             return True
         else:
             return False
-
-
-
-
-
 
     def print_info(self) -> None:
         """Выводит в консоль информацию о канале."""
@@ -125,3 +118,4 @@ class Channel:
     @property
     def description(self):
         return self.__description
+
