@@ -1,85 +1,48 @@
-from src.channel import Channel
-from pprint import pprint
+from googleapiclient.discovery import build
+import json
+import os
 
 
 class Video:
-    """Класс для ролика YouTube"""
-    __youtube_obj = None
-
     def __init__(self, video_id: str) -> None:
-        # Создает объект для доступа к YouTube API
-        if Video.__youtube_obj is None:
-            Video.__youtube_obj = Channel.get_service()
-        # Заполняем аттрибуты экземпляра класса
+        """Экземпляр инициализируется id видео.
+        Дальше все данные будут подтягиваться по API."""
+
+        api_key: str = os.getenv('API_KEY')
+        # создан специальный объект для работы с API
+        youtube = build('youtube', 'v3', developerKey=api_key)
         self.__video_id = video_id
+        # получаем данные о канале
+        video_response = youtube.videos().list(part='snippet,statistics,contentDetails,topicDetails',
+                                               id=video_id
+                                               ).execute()
+        # printj(video_response)
+        video_title: str = video_response['items'][0]['snippet']['title']
+        view_count: int = video_response['items'][0]['statistics']['viewCount']
+        like_count: int = video_response['items'][0]['statistics']['likeCount']
 
-        video_response = Video.__youtube_obj.videos().list(part='snippet,statistics,contentDetails,topicDetails',
-                                                           id=self.video_id
-                                                           ).execute()
-
-        try:
-            # название видео
-            self.__title = video_response['items'][0]['snippet']['title']
-
-            # количество просмотров
-            self.__viewCount = int(video_response['items'][0]['statistics']['viewCount'])
-            # количество лайков
-            self.__likeCount = int(video_response['items'][0]['statistics']['likeCount'])
-        except (IndexError, KeyError):
-            self.__title = None
-            self.__viewCount = None
-            self.__likeCount = None
-
-    def print_video_info(self):
-        video_response = Video.__youtube_obj.videos().list(part='snippet,statistics,contentDetails,topicDetails',
-                                                           id=self.video_id).execute()
-        pprint(video_response)
+        self.video_title = video_title
+        self.view_count = view_count
+        self.like_count = like_count
+        self.url = 'https://www.youtube.com//watch?v=' + self.__video_id
 
     def __str__(self):
-        return f"{self.title}"
-
-    def __repr__(self):
-        return (f"название видео: {self.title}\n"
-                f"id video: {self.__video_id}\n"
-                f"ссылка на видео: {self.link_video}\n"
-                f"количество просмотров: {self.view_count}\n"
-                f"количество лайков: {self.like_count}")
-
-    @property
-    def video_id(self):
-        return self.__video_id
-
-    @property
-    def youtube_object(self):
-        return Video.__youtube_obj
-
-    @property
-    def title(self):
-        return self.__title
-
-    @property
-    def view_count(self):
-        return self.__viewCount
-
-    @property
-    def like_count(self):
-        return self.__likeCount
-
-    @property
-    def link_video(self):
-        # return f'https://www.youtube.com/watch?v={self.video_id}'
-        return f'https://youtu.be/{self.video_id}'
+        """
+        Выводит название видео
+        """
+        return self.video_title
 
 
 class PLVideo(Video):
-    def __init__(self, video_id: str, playlist_id: str):
+    def __init__(self, video_id, playlist_id):
+        """
+        Экземпляр инициализируется id видео и id плейлиста
+        """
         super().__init__(video_id)
-        self.__playlist_id = playlist_id
+        self.playlist_id = playlist_id
 
-    @property
-    def playlist_id(self):
-        return self.__playlist_id
-
-    def __repr__(self):
-        return super().__repr__() + '\n' + f"id плейлиста: {self.playlist_id}"
-
+    def __str__(self):
+        """
+        Выводит название видео
+        """
+        return self.video_title
